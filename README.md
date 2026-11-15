@@ -1,7 +1,12 @@
 # Transcript Dock for .NET
 
 An asynchronous client for the public Transcript Dock API. Targets .NET 8 and
-newer, with no third party runtime dependencies. Version 0.1.0.
+newer, with no third party runtime dependencies. Version 0.1.0 is available on
+[NuGet](https://www.nuget.org/packages/TranscriptDock/0.1.0).
+
+```sh
+dotnet add package TranscriptDock --version 0.1.0
+```
 
 ```csharp
 using TranscriptDock;
