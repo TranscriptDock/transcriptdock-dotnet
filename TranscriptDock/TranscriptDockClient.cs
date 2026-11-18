@@ -75,7 +75,7 @@ public sealed class TranscriptDockClient : IDisposable
         using var request = new HttpRequestMessage(method, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        request.Headers.UserAgent.ParseAdd("transcriptdock-dotnet/0.1.0");
+        request.Headers.UserAgent.ParseAdd("transcriptdock-dotnet/0.1.1");
         if (idempotencyKey is not null) request.Headers.Add("Idempotency-Key", idempotencyKey);
         if (body is not null) request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
         try
