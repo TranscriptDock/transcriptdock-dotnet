@@ -35,6 +35,8 @@ key to recover a lost submission response. There are no automatic retries.
 covers all public `/v1` endpoints using the exact API fields, including batches,
 discovery, uploads, usage and webhooks. See the
 [API contract](https://www.transcriptdock.com/docs/openapi.yaml).
+A success with no body (204 No Content, such as deleting a webhook endpoint)
+returns an empty JSON object from `RequestAsync` and an empty string from `RequestTextAsync`.
 
 JSON responses are cloned `JsonElement` objects retaining every field and the
 original timing units. Export methods return raw text, including JSON exports.

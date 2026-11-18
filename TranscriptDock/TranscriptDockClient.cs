@@ -34,7 +34,13 @@ public sealed class TranscriptDockClient : IDisposable
     public async Task<JsonElement> RequestAsync(HttpMethod method, string path, object? body = null,
         IReadOnlyDictionary<string, string?>? query = null, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
-        var raw = await RequestTextAsync(method, path, body, query, idempotencyKey, cancellationToken);
+        var (status, raw) = await SendAsync(method, path, body, query, idempotencyKey, cancellationToken);
+        if (status == 204)
+        {
+            // No Content: a success without a body, for example deleting a webhook endpoint.
+            using var empty = JsonDocument.Parse("{}");
+            return empty.RootElement.Clone();
+        }
         try
         {
             using var document = JsonDocument.Parse(raw);
@@ -48,6 +54,10 @@ public sealed class TranscriptDockClient : IDisposable
     /// <summary>Returns raw export text or calls a public endpoint without parsing its body.</summary>
     public async Task<string> RequestTextAsync(HttpMethod method, string path, object? body = null,
         IReadOnlyDictionary<string, string?>? query = null, string? idempotencyKey = null, CancellationToken cancellationToken = default)
+        => (await SendAsync(method, path, body, query, idempotencyKey, cancellationToken)).Raw;
+
+    private async Task<(int Status, string Raw)> SendAsync(HttpMethod method, string path, object? body,
+        IReadOnlyDictionary<string, string?>? query, string? idempotencyKey, CancellationToken cancellationToken)
     {
         if (!path.StartsWith("/v1/", StringComparison.Ordinal) || path.IndexOfAny(['?', '#', '\\']) >= 0 ||
             Uri.UnescapeDataString(path).Split('/').Any(part => part is "." or ".."))
@@ -73,7 +83,7 @@ public sealed class TranscriptDockClient : IDisposable
             using var response = await http.SendAsync(request, cancellationToken);
             var raw = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode) throw Error(raw, (int)response.StatusCode);
-            return raw;
+            return ((int)response.StatusCode, raw);
         }
         catch (HttpRequestException) { throw new ApiException("NETWORK_ERROR", "Could not reach the API. Check the job before retrying a submission.", retryable: true); }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)

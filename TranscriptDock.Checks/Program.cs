@@ -48,6 +48,10 @@ foreach (var path in new[] { "/v1/batches", "/v1/video-discoveries", "/v1/langua
     Check(result.GetProperty("request").GetProperty("method").GetString() == "POST", "generic submission failed");
 }
 Check((await client.RequestAsync(HttpMethod.Delete, "/v1/transcripts/fixture")).GetProperty("request").GetProperty("method").GetString() == "DELETE", "delete dispatch failed");
+var noContent = await client.RequestAsync(HttpMethod.Delete, "/v1/no-content");
+Check(noContent.ValueKind == JsonValueKind.Object && !noContent.EnumerateObject().Any(), "no content success not empty");
+Check(await client.RequestTextAsync(HttpMethod.Delete, "/v1/no-content") == "", "no content text not empty");
+Check((await Raises<ApiException>(async () => await client.RequestAsync(HttpMethod.Get, "/v1/empty-ok"))).Code == "INVALID_RESPONSE", "empty 200 accepted");
 foreach (var url in new[] { "http://example.com", "https://user:pass@example.com", "https://example.com/path", "https://example.com?x=1" })
     Reject(() => new TranscriptDockClient("fixture-key", url));
 Reject(() => new TranscriptDockClient("bad\nkey"));
